@@ -22,7 +22,7 @@ const invoiceSchema = new mongoose.Schema({
     type: String,
     enum: ["Pending", "Paid", "Overdue"],
     default: "Pending",
-  }, // Invoice status
+  },
   createdAt: { type: Date, default: Date.now }, // Timestamp of creation
 });
 
