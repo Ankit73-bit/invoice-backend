@@ -1,14 +1,14 @@
-import Customer from "../models/clientModel.js";
+import Client from "../models/clientModel.js";
 
-export const getAllCustomers = async (req, res) => {
+export const getAllClients = async (req, res) => {
   try {
-    const customers = await Customer.find();
+    const clients = await Client.find();
 
     res.status(200).json({
       status: "success",
-      results: customers.length,
+      results: clients.length,
       data: {
-        customers,
+        clients,
       },
     });
   } catch (err) {
@@ -19,14 +19,14 @@ export const getAllCustomers = async (req, res) => {
   }
 };
 
-export const getCustomer = async (req, res) => {
+export const getClient = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const client = await Client.findById(req.params.id);
 
     res.status(200).json({
       status: "success",
       data: {
-        customer,
+        client,
       },
     });
   } catch (err) {
@@ -37,14 +37,14 @@ export const getCustomer = async (req, res) => {
   }
 };
 
-export const createCustomer = async (req, res) => {
+export const createClient = async (req, res) => {
   try {
-    const newCustomer = await Customer.create(req.body);
+    const newClient = await Client.create(req.body);
 
     res.status(201).json({
       status: "success",
       data: {
-        customer: newCustomer,
+        client: newClient,
       },
     });
   } catch (err) {
@@ -55,9 +55,9 @@ export const createCustomer = async (req, res) => {
   }
 };
 
-export const updateCustomer = async (req, res) => {
+export const updateClient = async (req, res) => {
   try {
-    const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, {
+    const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
@@ -65,7 +65,7 @@ export const updateCustomer = async (req, res) => {
     res.status(200).json({
       status: "success",
       data: {
-        customer,
+        client,
       },
     });
   } catch (err) {
@@ -76,9 +76,9 @@ export const updateCustomer = async (req, res) => {
   }
 };
 
-export const deleteCustomer = async (req, res) => {
+export const deleteClient = async (req, res) => {
   try {
-    await Customer.findByIdAndDelete(req.params.id);
+    await Client.findByIdAndDelete(req.params.id);
     res.status(204).json({
       status: "success",
       data: null,

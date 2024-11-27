@@ -12,7 +12,6 @@ const app = express();
 // Configure CORS
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow requests from your Vite development server
     methods: ["GET", "POST", "PUT", "DELETE"], // Allow methods you plan to use
     credentials: true, // Allow credentials if you're using cookies/sessions
   })

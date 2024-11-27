@@ -2,14 +2,17 @@ import Consignee from "../models/consigneeModel.js";
 import Client from "../models/clientModel.js";
 import Invoice from "../models/invoiceModel.js";
 import mongoose from "mongoose";
+import APIFeatures from "../utils/apiFeatures.js";
 
 export const getAllInvoices = async (req, res) => {
   try {
-    const { page = 1, limit = 10 } = req.query; // Pagination params
-    const invoices = await Invoice.find()
-      .select("-__v") // Exclude fields like `__v`
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+    // execute QUERY
+    const features = new APIFeatures(Invoice.find(), req.query)
+      .filter()
+      .sort()
+      .limitField()
+      .paginate();
+    const invoices = await features.query;
 
     res.status(200).json({
       status: "success",
@@ -56,24 +59,6 @@ export const getInvoice = async (req, res) => {
   }
 };
 
-export const getLastInvoice = async (req, res) => {
-  try {
-    const lastInvoice = await Invoice.findOne().sort({ invoiceNo: -1 });
-
-    if (!lastInvoice) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No invoices found" });
-    }
-
-    res.status(200).json({ success: true, data: lastInvoice });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
-  }
-};
-
 export const createInvoice = async (req, res) => {
   try {
     const { client, consignee, items, ...invoiceData } = req.body;
@@ -94,24 +79,9 @@ export const createInvoice = async (req, res) => {
         .json({ status: "fail", message: "Consignee not found" });
     }
 
-    // Parse Date fields
-    const parsedInvoice = {
-      ...invoiceData,
-      date: invoiceData.date ? new Date(invoiceData.date) : undefined,
-      referenceDate: invoiceData.referenceDate
-        ? new Date(invoiceData.referenceDate)
-        : undefined,
-      buyersPODate: invoiceData.buyersPODate
-        ? new Date(invoiceData.buyersPODate)
-        : undefined,
-      dispatchDocLRNoDate: invoiceData.dispatchDocLRNoDate
-        ? new Date(invoiceData.dispatchDocLRNoDate)
-        : undefined,
-    };
-
     // Create Invoice
     const newInvoice = await Invoice.create({
-      ...parsedInvoice,
+      ...invoiceData,
       client,
       consignee,
       items,
@@ -159,13 +129,7 @@ export const updateInvoice = async (req, res) => {
 
 export const deleteInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findByIdAndDelete(req.params.id);
-
-    if (!invoice) {
-      return res
-        .status(404)
-        .json({ status: "fail", message: "Invoice not found" });
-    }
+    await Invoice.findByIdAndDelete(req.params.id);
 
     res.status(204).json({ status: "success", data: null });
   } catch (err) {
@@ -173,6 +137,58 @@ export const deleteInvoice = async (req, res) => {
       status: "fail",
       message: "Error deleting invoice",
       error: err.message,
+    });
+  }
+};
+
+export const getInvoicesStats = async (req, res) => {
+  try {
+    const stats = await Invoice.aggregate([
+      {
+        $facet: {
+          totalRevenue: [
+            { $group: { _id: "$company", total: { $sum: "$grossAmount" } } },
+          ],
+          revenueByStatus: [
+            { $group: { _id: "$status", total: { $sum: "$grossAmount" } } },
+          ],
+          monthlyTrends: [
+            {
+              $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+                total: { $sum: "$grossAmount" },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
+          countByStatus: [
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+              },
+            },
+          ],
+          averageGSTRate: [
+            {
+              $group: {
+                _id: null,
+                averageGSTRate: { $avg: "$gstDetails.rate" },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: "success",
+      data: stats[0],
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: "fail",
+      message: err.message,
     });
   }
 };

@@ -99,7 +99,7 @@ export function ConvertToWords(amount) {
     }
   }
 
-  return `Ruppees ${words.trim()} Only`;
+  return `Rupees ${words.trim()} Only`;
 }
 
 // Helper function to extract the numeric value from percentage strings like "9%"
