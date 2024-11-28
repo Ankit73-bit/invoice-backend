@@ -1,8 +1,16 @@
 import mongoose from "mongoose";
 
 const invoiceSchema = new mongoose.Schema({
-  invoiceNo: { type: String, required: true, unique: true },
-  date: { type: Date, default: Date.now },
+  invoiceNo: {
+    type: String,
+    required: [true, "A Invoice must have invoice number"],
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+    required: [true, "A Invoice must have invoice date"],
+  },
+  financialYear: { type: String, required: true }, // e.g., "24-25"
   referenceNo: { type: String },
   referenceDate: { type: Date },
   otherReferences: { type: String },
@@ -17,7 +25,7 @@ const invoiceSchema = new mongoose.Schema({
   company: {
     type: String,
     enum: ["Paras Solutions", "Paras Print"],
-    required: true,
+    required: [true, "A Invoice must have company"],
   },
   from: { type: String, required: true },
   to: { type: String, required: true },
@@ -28,8 +36,12 @@ const invoiceSchema = new mongoose.Schema({
   client: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Client",
+    required: [true, "A Invoice must have client"],
   },
-  companyBankDetails: { type: String, required: true },
+  companyBankDetails: {
+    type: String,
+    required: [true, "A Invoice must have company details"],
+  },
   items: [
     {
       description: { type: String, required: true, trim: true },
@@ -67,6 +79,12 @@ const invoiceSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
 });
+
+// Add compound index for unique invoiceNo per company
+invoiceSchema.index(
+  { invoiceNo: 1, financialYear: 1, company: 1 },
+  { unique: true }
+);
 
 const Invoice = mongoose.model("Invoice", invoiceSchema);
 export default Invoice;
