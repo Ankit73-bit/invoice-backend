@@ -146,7 +146,35 @@ export const updateInvoice = catchAsync(async (req, res, next) => {
 });
 
 export const deleteInvoice = catchAsync(async (req, res, next) => {
-  await Invoice.findByIdAndDelete(req.params.id);
+  const invoiceId = req.params.id;
+
+  // Find the invoice to get its company and financial year
+  const invoice = await Invoice.findById(invoiceId);
+  if (!invoice) {
+    return next(new AppError("Invoice not found", 404));
+  }
+
+  // Extract company and financial year from the invoice
+  const { company, financialYear } = invoice;
+
+  // Delete the invoice
+  await Invoice.findByIdAndDelete(invoiceId);
+
+  // Decrement the counter for the corresponding company and financial year
+  const counter = await Counter.findOneAndUpdate(
+    { company, financialYear },
+    { $inc: { lastInvoiceNo: -1 } }, // Decrement the counter
+    { new: true }
+  );
+
+  if (!counter) {
+    return next(
+      new AppError(
+        `Counter not found for company ${company} and financial year ${financialYear}`,
+        404
+      )
+    );
+  }
 
   res.status(204).json({
     status: "success",
