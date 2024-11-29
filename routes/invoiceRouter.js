@@ -11,12 +11,8 @@ import { protect, restrictTo } from "../controllers/authController.js";
 
 export const router = express.Router();
 
-router.route("/").get(protect, getAllInvoices).post(createInvoice);
+router.route("/").get(getAllInvoices).post(createInvoice);
 
 router.route("/invoice-stats").get(getInvoicesStats);
 
-router
-  .route("/:id")
-  .get(getInvoice)
-  .put(updateInvoice)
-  .delete(protect, restrictTo("admin"), deleteInvoice);
+router.route("/:id").get(getInvoice).put(updateInvoice).delete(deleteInvoice);
