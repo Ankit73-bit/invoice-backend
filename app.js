@@ -5,6 +5,7 @@ import { router as customerRouter } from "./routes/clientRouter.js";
 import { router as consigneeRouter } from "./routes/consigneeRouter.js";
 import { router as itemRouter } from "./routes/itemRouter.js";
 import { router as userRouter } from "./routes/userRouter.js";
+import { router as counterRouter } from "./routes/counterRouter.js";
 import cors from "cors";
 import AppError from "./utils/appError.js";
 import globalErrorHandler from "./controllers/errorController.js";
@@ -21,6 +22,7 @@ app.use("/api/v1/clients", customerRouter);
 app.use("/api/v1/consignees", consigneeRouter);
 app.use("/api/v1/items", itemRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/counters", counterRouter);
 
 app.all("*", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

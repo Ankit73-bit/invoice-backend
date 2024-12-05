@@ -8,12 +8,15 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/appError.js";
 
 export const getAllInvoices = catchAsync(async (req, res, next) => {
-  // execute QUERY
-  const features = new APIFeatures(Invoice.find(), req.query)
+  const features = new APIFeatures(
+    Invoice.find().populate("client").populate("consignee"),
+    req.query
+  )
     .filter()
     .sort()
     .limitFields()
     .paginate();
+
   const invoices = await features.query;
 
   res.status(200).json({
